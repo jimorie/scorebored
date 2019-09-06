@@ -1,17 +1,14 @@
-from ..database import MatchResultModel
-from .base import DatabaseModelService
-from .side import SideService
+from scorebored.overrides.aioli_rdbms.service import DatabaseModelService
+
+from ..database import SidePlayerModel
 
 
-class MatchResultService(DatabaseModelService):
-    side: SideService
-
+class SidePlayerService(DatabaseModelService):
     async def on_startup(self):
         """
         Integrate services.
         """
-        await self.set_db_model(MatchResultModel)
-        self.side = self.connect(SideService)
+        await self.set_db_model(SidePlayerModel)
 
     async def get_many(self, **query):
         # TODO: Joining related columns here causes duplicated rows. Report?

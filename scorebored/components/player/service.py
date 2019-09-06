@@ -1,5 +1,6 @@
-from ..database import PlayerModel
-from .base import NamedDatabaseModelService
+from scorebored.overrides.aioli_rdbms.service import NamedDatabaseModelService
+
+from .database import PlayerModel
 
 
 class PlayerService(NamedDatabaseModelService):
