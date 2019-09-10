@@ -3,14 +3,14 @@ from aioli import Package
 from .components import *
 
 export = Package(
-    controllers=[SideController, PlayerController, MatchController, GameController],
+    controllers=[GameController, MatchController, PlayerController, SideController],
     services=[
-        SideService,
-        SidePlayerService,
-        PlayerService,
-        MatchService,
-        MatchResultService,
         GameService,
+        MatchResultService,
+        MatchService,
+        PlayerService,
+        SidePlayerService,
+        SideService,
     ],
     auto_meta=True,
 )
