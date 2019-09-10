@@ -21,42 +21,6 @@ class SideService(NamedDatabaseModelService):
         self.player = self.connect(PlayerService)
         self.side_player = self.connect(SidePlayerService)
 
-    async def get_one(self, pk):
-        """
-        Return a single Side entry or raise an exception.
-
-        :param pk: Primary key of the Side entry to get
-        :return: Single Side entry
-        """
-
-        async with self.db.manager.database.transaction():
-            side = await super().get_one(pk)
-            return await self._expand(side)
-
-    async def find_one(self, **query):
-        """
-        Return a single Side entry or raise an exception
-
-        :param query: Query parameters
-        :return: Single Side entry
-        """
-
-        async with self.db.manager.database.transaction():
-            side = await super().find_one(**query)
-            return await self._expand(side)
-
-    async def get_many(self, **query):
-        """
-        Return a list of zero or more Side entries.
-
-        :param query: Query parameters
-        :return: List of Side entries
-        """
-
-        async with self.db.manager.database.transaction():
-            sides = await super().get_many(**query)
-            return [await self._expand(side) for side in sides]
-
     async def delete(self, pk):
         """
         Delete a Side entry.
@@ -86,9 +50,9 @@ class SideService(NamedDatabaseModelService):
             name = payload.get("name") or self._get_default_name(players)
             member_key = self._get_member_key(players)
             side = await super().update(pk, dict(name=name, member_key=member_key))
-            await self.side_player.delete_many(query=dict(side=side))
+            await self.side_player.delete_many(query=dict(side=side.model))
             for player in players:
-                await self.side_player.create(dict(side=side, player=player))
+                await self.side_player.create(dict(side=side.model, player=player.model))
             return await self.get_one(pk)
 
     async def create(self, payload):
@@ -120,7 +84,7 @@ class SideService(NamedDatabaseModelService):
             ]
             member_key = self._get_member_key(players)
             try:
-                return await self.db.get_one(member_key=member_key)
+                return await self.find_one(member_key=member_key)
             except NoMatchFound:
                 return await self._create_side(players, member_key=member_key)
 
@@ -130,21 +94,21 @@ class SideService(NamedDatabaseModelService):
         name = self._get_default_name(players)
         side = await self.db.create(name=name, member_key=member_key)
         for player in players:
-            await self.side_player.create(dict(side=side, player=player))
+            await self.side_player.create(dict(side=side, player=player.model))
         self.log.info(f"New side: {side}")
-        return side
+        return await self.get_one(side.id)
 
-    async def _expand(self, side):
-        side_data = dict(side)
-        side_players = await self.side_player.get_many(query=dict(side=side))
-        side_data["players"] = [
-            await self.player.get_one(side_player.player)
+    async def expand(self, side):
+        side_players = await self.side_player.get_many(query=dict(side=side.model))
+        self.log.info(side_players)
+        side["players"] = [
+            await self.player.get_one(side_player["player"]["id"])
             for side_player in side_players
         ]
-        return side_data
+        return side
 
     def _get_member_key(self, players):
-        return "+".join(str(pid) for pid in sorted(player.id for player in players))
+        return "+".join(str(pid) for pid in sorted(player["id"] for player in players))
 
     def _get_default_name(self, players):
-        return " + ".join(sorted(player.name for player in players))
+        return " + ".join(sorted(player["name"] for player in players))

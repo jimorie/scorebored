@@ -17,5 +17,3 @@ class SidePlayerModel(Model):
     id = fields.Integer(primary_key=True)
     side = fields.ForeignKey(SideModel)
     player = fields.ForeignKey(PlayerModel)
-    # from sqlalchemy import PrimaryKeyConstraint
-    # id = PrimaryKeyConstraint('side', 'player')

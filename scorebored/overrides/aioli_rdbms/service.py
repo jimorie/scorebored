@@ -9,6 +9,12 @@ class ConflictException(AioliException):
         super(ConflictException, self).__init__(status=409, message=message)
 
 
+class DatabaseDict(dict):
+    def __init__(self, model):
+        self.model = model
+        super().__init__(self, **model)
+
+
 class DatabaseModelService(BaseService):
     db = None
     db_model = None
@@ -30,7 +36,7 @@ class DatabaseModelService(BaseService):
         :return: Single Model object
         """
 
-        return await self.db.get_one(pk=pk)
+        return await self._expand(await self.db.get_one(pk=pk))
 
     async def find_one(self, **query):
         """
@@ -40,7 +46,7 @@ class DatabaseModelService(BaseService):
         :return: Single Model object
         """
 
-        return await self.db.get_one(**query)
+        return await self._expand(await self.db.get_one(**query))
 
     async def get_many(self, **query):
         """
@@ -52,7 +58,7 @@ class DatabaseModelService(BaseService):
 
         query["join_related"] = False
 
-        return await self.db.get_many(**query)
+        return [await self._expand(obj) for obj in await self.db.get_many(**query)]
 
     async def delete(self, pk):
         """
@@ -94,7 +100,8 @@ class DatabaseModelService(BaseService):
         :return: The updated Model object
         """
 
-        return await self.db.update(pk, payload)
+        await self.db.update(pk, payload)
+        return await self.get_one(pk)
 
     async def create(self, payload):
         """
@@ -105,9 +112,15 @@ class DatabaseModelService(BaseService):
         """
 
         async with self.db.manager.database.transaction():
-            obj = await self.db.create(**payload)
+            obj = await self._expand(await self.db.create(**payload))
             self.log.info(f"New {self.db_model_name}: {obj}")
             return obj
+
+    async def expand(self, d):
+        return d
+
+    async def _expand(self, obj):
+        return await self.expand(DatabaseDict(obj))
 
 
 class NamedDatabaseModelService(DatabaseModelService):
@@ -127,11 +140,9 @@ class NamedDatabaseModelService(DatabaseModelService):
         :param payload: Entry data
         :return: The found or created Model object
         """
-        self.log.info(f"Creating {self.db_model_name}")
-        self.log.info(payload)
 
         try:
-            return await self.db.get_one(
+            return await self.find_one(
                 **{self.db_name_field: payload[self.db_name_field]}
             )
         except NoMatchFound:
