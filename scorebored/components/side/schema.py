@@ -1,12 +1,14 @@
 from aioli.controller.schemas import fields, Schema
 
-from scorebored.components.player.schema import Player
+from scorebored.components.player.schema import PlayerLight
+from scorebored.components.stats.schema import Stats
 
 
 class Side(Schema):
     id = fields.Integer()
     name = fields.String()
-    players = fields.List(fields.Nested(Player))
+    players = fields.List(fields.Nested(PlayerLight))
+    stats = fields.Nested(Stats)
 
     class Meta:
         dump_only = ["id"]
@@ -15,7 +17,7 @@ class Side(Schema):
 class SideLight(Side):
     class Meta:
         dump_only = ["id"]
-        exclude = ["players"]
+        exclude = ["players", "stats"]
 
 
 class SideNew(Schema):
