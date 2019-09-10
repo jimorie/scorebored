@@ -1,9 +1,11 @@
 from aioli.exceptions import NoMatchFound
 
+from scorebored.overrides.aioli_rdbms.service import NamedDatabaseModelService
+from scorebored.components.player import PlayerService
+
 from ..database import SideModel
-from .base import NamedDatabaseModelService
-from .player import PlayerService
-from .side_player import SidePlayerService
+
+from .sideplayer import SidePlayerService
 
 
 class SideService(NamedDatabaseModelService):

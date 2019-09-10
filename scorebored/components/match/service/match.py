@@ -1,8 +1,10 @@
+from scorebored.overrides.aioli_rdbms.service import DatabaseModelService
+from scorebored.components.game import GameService
+from scorebored.components.side import SideService
+
 from ..database import MatchModel
-from .base import DatabaseModelService
-from .game import GameService
-from .match_result import MatchResultService
-from .side import SideService
+
+from .result import MatchResultService
 
 
 class MatchService(DatabaseModelService):

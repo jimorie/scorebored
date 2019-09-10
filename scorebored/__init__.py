@@ -1,13 +1,16 @@
 from aioli import Package
 
-from .service import MatchService
-from .controller import HttpController
-from .config import ConfigSchema
-
+from .components import *
 
 export = Package(
-    controllers=[HttpController],
-    services=[MatchService],
-    config=ConfigSchema,
+    controllers=[SideController, PlayerController, MatchController, GameController],
+    services=[
+        SideService,
+        SidePlayerService,
+        PlayerService,
+        MatchService,
+        MatchResultService,
+        GameService,
+    ],
     auto_meta=True,
 )

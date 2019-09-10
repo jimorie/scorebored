@@ -1,9 +1,12 @@
-from aioli.exceptions import NoMatchFound
+from aioli.exceptions import NoMatchFound, AioliException
 from aioli.service import BaseService
 from aioli_rdbms import DatabaseService
 from pymysql.err import IntegrityError
 
-from ..exceptions import ConflictException
+
+class ConflictException(AioliException):
+    def __init__(self, message="Conflict"):
+        super(ConflictException, self).__init__(status=409, message=message)
 
 
 class DatabaseModelService(BaseService):
