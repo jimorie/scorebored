@@ -50,6 +50,8 @@ class DatabaseModelService(BaseService):
         :return: List of zero or more Model objects
         """
 
+        query["join_related"] = False
+
         return await self.db.get_many(**query)
 
     async def delete(self, pk):
@@ -73,7 +75,8 @@ class DatabaseModelService(BaseService):
         :param query: Query parameters
         """
 
-        self.log.info(f"Query is: {query}")
+        query["join_related"] = False
+
         try:
             for result in await self.db.get_many(**query):
                 await result.delete()
