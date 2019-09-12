@@ -1,3 +1,3 @@
-from .service import StatsService
+from .service import StatsService, StatsKeyService
 from .schema import Stats
-from .database import StatsModel
+from .database import StatsModel, StatsKeyModel

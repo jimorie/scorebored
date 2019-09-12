@@ -5,7 +5,7 @@ from scorebored.components.stats.schema import Stats
 class Player(Schema):
     id = fields.Integer()
     name = fields.String()
-    stats = fields.Nested(Stats)
+    stats = fields.List(fields.Nested(Stats))
 
     class Meta:
         dump_only = ["id"]

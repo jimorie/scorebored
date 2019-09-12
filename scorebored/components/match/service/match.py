@@ -82,6 +82,7 @@ class MatchService(DatabaseModelService):
             )
             for result in match_results
         ]
+        match["game"] = await self.game.get_one(pk=match["game"]["id"])
         return match
 
     async def _create_results(self, match, results_payload):

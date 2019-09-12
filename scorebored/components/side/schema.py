@@ -8,7 +8,7 @@ class Side(Schema):
     id = fields.Integer()
     name = fields.String()
     players = fields.List(fields.Nested(PlayerLight))
-    stats = fields.Nested(Stats)
+    stats = fields.List(fields.Nested(Stats))
 
     class Meta:
         dump_only = ["id"]

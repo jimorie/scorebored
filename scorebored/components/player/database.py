@@ -1,5 +1,5 @@
 from aioli_rdbms.model import Model, fields
-from scorebored.components.stats import StatsModel
+from scorebored.components.stats import StatsKeyModel
 
 
 class PlayerModel(Model):
@@ -7,4 +7,4 @@ class PlayerModel(Model):
 
     id = fields.Integer(primary_key=True)
     name = fields.String(max_length=64, unique=True)
-    stats = fields.ForeignKey(StatsModel)
+    stats_key = fields.ForeignKey(StatsKeyModel)

@@ -2,7 +2,7 @@ from aioli.exceptions import NoMatchFound
 
 from scorebored.overrides.aioli_rdbms.service import NamedDatabaseModelService
 from scorebored.components.player import PlayerService
-from scorebored.components.stats import StatsService
+from scorebored.components.stats import StatsService, StatsKeyService
 
 from ..database import SideModel
 
@@ -13,6 +13,7 @@ class SideService(NamedDatabaseModelService):
     player: PlayerService
     side_player: SidePlayerService
     stats: StatsService
+    stats_key: StatsKeyService
 
     async def on_startup(self):
         """
@@ -23,6 +24,7 @@ class SideService(NamedDatabaseModelService):
         self.player = self.connect(PlayerService)
         self.side_player = self.connect(SidePlayerService)
         self.stats = self.connect(StatsService)
+        self.stats_key = self.connect(StatsKeyService)
 
     async def delete(self, pk):
         """
@@ -34,7 +36,8 @@ class SideService(NamedDatabaseModelService):
         async with self.db.manager.database.transaction():
             side = await self.db.get_one(pk=pk)
             await self.side_player.delete_many(query=dict(side=side))
-            await self.stats.delete(side.stats.model.id)
+            await self.stats.delete_many(query=dict(stats_key=side.stats_key))
+            await self.stats_key.delete(side.stats_key.pk)
             return await super().delete(pk)
 
     async def update(self, pk, payload):
@@ -98,8 +101,8 @@ class SideService(NamedDatabaseModelService):
         if member_key is None:
             member_key = self._get_member_key(players)
         name = self._get_default_name(players)
-        stats = await self.stats.create(dict())
-        side = await self.db.create(name=name, member_key=member_key, stats=stats.model)
+        stats_key = await self.stats_key.create(dict())
+        side = await self.db.create(name=name, member_key=member_key, stats_key=stats_key.model)
         for player in players:
             await self.side_player.create(dict(side=side, player=player.model))
         self.log.info(f"New side: {side}")
@@ -111,7 +114,7 @@ class SideService(NamedDatabaseModelService):
             await self.player.get_one(side_player["player"]["id"])
             for side_player in side_players
         ]
-        side["stats"] = await self.stats.get_one(side["stats"].id)
+        side["stats"] = await self.stats.get_many(query=dict(stats_key=side["stats_key"]))
         return side
 
     def _get_member_key(self, players):

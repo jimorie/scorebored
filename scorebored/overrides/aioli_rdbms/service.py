@@ -4,6 +4,15 @@ from aioli_rdbms import DatabaseService
 from pymysql.err import IntegrityError
 
 
+# UGLY MONKEY PATCH: Either I'm missing something or the join_related stuff is just borken
+import aioli_rdbms.service
+class UnrelatedModelProxy(aioli_rdbms.service.ModelProxy):
+    @property
+    def related(self):
+        return []
+aioli_rdbms.service.ModelProxy = UnrelatedModelProxy
+
+
 class ConflictException(AioliException):
     def __init__(self, message="Conflict"):
         super(ConflictException, self).__init__(status=409, message=message)
@@ -56,8 +65,6 @@ class DatabaseModelService(BaseService):
         :return: List of zero or more Model objects
         """
 
-        query["join_related"] = False
-
         return [await self._expand(obj) for obj in await self.db.get_many(**query)]
 
     async def delete(self, pk):
@@ -81,8 +88,6 @@ class DatabaseModelService(BaseService):
         :param query: Query parameters
         """
 
-        query["join_related"] = False
-
         try:
             for result in await self.db.get_many(**query):
                 await result.delete()
@@ -100,6 +105,7 @@ class DatabaseModelService(BaseService):
         :return: The updated Model object
         """
 
+        self.log.info(payload)
         await self.db.update(pk, payload)
         return await self.get_one(pk)
 

@@ -11,6 +11,7 @@ export = Package(
         PlayerService,
         SidePlayerService,
         SideService,
+        StatsKeyService,
         StatsService,
     ],
     auto_meta=True,
